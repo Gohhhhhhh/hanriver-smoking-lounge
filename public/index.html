@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌸 한강 벚꽃 흡연소</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ── LOGIN SCREEN ─────────────────────────────────────────────────────── -->
+  <div id="loginScreen">
+    <div class="petals-bg" id="loginPetals"></div>
+    <div class="login-box">
+      <div class="login-icon">🌸</div>
+      <h1 class="login-title">한강 벚꽃 흡연소</h1>
+      <p class="login-sub">카피바라가 되어 한강에서 힐링하세요</p>
+      <form id="loginForm">
+        <input
+          type="text"
+          id="nameInput"
+          placeholder="닉네임을 입력하세요 (최대 12자)"
+          maxlength="12"
+          autocomplete="off"
+          spellcheck="false"
+          required
+        >
+        <button type="submit">입 장 하 기 →</button>
+      </form>
+      <p class="login-hint">방향키: 이동 &nbsp;|&nbsp; Enter: 채팅</p>
+    </div>
+  </div>
+
+  <!-- ── LOADING SCREEN ───────────────────────────────────────────────────── -->
+  <div id="loadingScreen">
+    <div class="loading-inner">
+      <div class="loading-emoji">🌸</div>
+      <div class="loading-title">한강 로딩 중...</div>
+      <div class="loading-bar-bg">
+        <div class="loading-bar-fill" id="loadingBar"></div>
+      </div>
+      <div class="loading-text" id="loadingText">맵 불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- ── GAME ─────────────────────────────────────────────────────────────── -->
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="gameUI">
+
+    <!-- Chat log -->
+    <div id="chatBox">
+      <div id="chatLog"></div>
+    </div>
+
+    <!-- Chat input (shown on Enter) -->
+    <div id="chatInputWrap">
+      <div id="chatInputName"></div>
+      <input
+        type="text"
+        id="chatInput"
+        placeholder="메시지 입력 후 Enter / ESC로 닫기"
+        maxlength="100"
+        autocomplete="off"
+        spellcheck="false"
+      >
+    </div>
+
+    <!-- Smoking counter -->
+    <div id="smokingPanel">
+      <div id="smokingTimer">
+        <div class="panel-label">오늘 핀 담배 (<span id="cigNum">1</span>)</div>
+        <div class="cig-icons" id="cigIcons">🚬</div>
+        <div class="timer-bar-bg">
+          <div class="timer-bar-fill" id="timerFill"></div>
+        </div>
+        <div class="timer-value" id="timerValue">다음 담배까지 10:00</div>
+      </div>
+    </div>
+
+    <!-- Mini-map -->
+    <canvas id="miniMap"></canvas>
+
+    <!-- Controls hint -->
+    <div id="controlsHint">
+      <span>↑↓←→ 이동</span>
+      <span>Enter 채팅</span>
+    </div>
+
+    <!-- Player count -->
+    <div id="playerCount">🌸 <span id="playerCountNum">1</span>명 접속 중</div>
+
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
