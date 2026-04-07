@@ -1341,7 +1341,7 @@ function drawChatBubble(x, y, message, ttl) {
   ctx.save();
   ctx.globalAlpha = alpha;
   ctx.imageSmoothingEnabled = true;
-  ctx.font = '12px "Noto Sans KR", sans-serif';
+  ctx.font = 'bold 12px sans-serif';
 
   const maxW = 190;
   const lines = [''];
@@ -1354,26 +1354,23 @@ function drawChatBubble(x, y, message, ttl) {
     }
   }
 
-  const lineH = 17, pad = 10;
-  const bw = Math.max(...lines.map(l => ctx.measureText(l).width)) + pad * 2;
-  const bh = lines.length * lineH + pad * 2 - 3;
+  const lineH = 16, padX = 12, padY = 8;
+  const bw = Math.max(...lines.map(l => ctx.measureText(l).width)) + padX * 2;
+  const bh = lines.length * lineH + padY * 2;
   const bx = x - bw / 2, by = y - bh;
 
+  // 말풍선 배경 (삼각형 없음)
   ctx.fillStyle   = 'rgba(255,255,255,0.95)';
-  ctx.strokeStyle = 'rgba(80,60,90,0.5)';
-  ctx.lineWidth   = 1.5;
+  ctx.strokeStyle = 'rgba(100,80,120,0.35)';
+  ctx.lineWidth   = 1.2;
   ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 10); ctx.fill(); ctx.stroke();
 
-  ctx.beginPath();
-  ctx.moveTo(x - 7, by + bh);
-  ctx.lineTo(x, by + bh + 9);
-  ctx.lineTo(x + 7, by + bh);
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.fill(); ctx.stroke();
-
-  ctx.fillStyle = '#2a1a2e';
-  ctx.textAlign = 'center';
-  lines.forEach((line, i) => ctx.fillText(line, x, by + pad + (i + 1) * lineH - 3));
+  // 텍스트 — 수직 정중앙 (textBaseline middle 사용)
+  ctx.fillStyle  = '#1a1a2e';
+  ctx.textAlign  = 'center';
+  ctx.textBaseline = 'middle';
+  const textStartY = by + padY + lineH / 2;
+  lines.forEach((line, i) => ctx.fillText(line, x, textStartY + i * lineH));
   ctx.restore();
 }
 
