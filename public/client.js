@@ -490,9 +490,15 @@ function update() {
   const moving = dx !== 0 || dy !== 0;
   if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
 
-  // 파란 존(강물)에서는 이동속도 50% 감소
+  // 존별 이동속도 / 부력
   const selfZone  = getCollisionZone(self.x, self.y);
   const moveSpeed = selfZone === 'blue' ? CFG.PLAYER_SPEED * 0.5 : CFG.PLAYER_SPEED;
+
+  // 초록 존(건물): 우산 들고 위로 천천히 떠오름
+  if (selfZone === 'green') {
+    self.y = Math.max(40, self.y - 1.5);
+    socket.emit('move', { x: self.x, y: self.y, direction: self.direction, isWalking: self.isWalking });
+  }
 
   if (moving) {
     self.x = Math.max(40, Math.min(MAP_W - 40, self.x + dx * moveSpeed));
@@ -949,9 +955,10 @@ function drawPlayer(player, isSelf) {
   const cw = CFG.CHAR_W, ch = CFG.CHAR_H;
 
   // 충돌맵 존 확인
-  const zone      = getCollisionZone(player.x, player.y);
-  const zoneAlpha = zone === 'yellow' ? 0.3 : 1.0;
-  const inWater   = zone === 'blue';
+  const zone       = getCollisionZone(player.x, player.y);
+  const zoneAlpha  = zone === 'yellow' ? 0.3 : 1.0;
+  const inWater    = zone === 'blue';
+  const inBuilding = zone === 'green';
 
   // 물에서 둥둥 떠다니는 bob 오프셋 (플레이어마다 위상 다르게)
   const bobPhase  = (player.x * 0.03 + player.y * 0.02) % (Math.PI * 2);
@@ -1008,6 +1015,9 @@ function drawPlayer(player, isSelf) {
 
   // 튜브 앞 반원 (캐릭터 위에 그림)
   if (inWater) drawTubeFront(px, rpy);
+
+  // 우산 (건물 내부 — 캐릭터 위에 그림)
+  if (inBuilding) drawUmbrella(px, rpy, player);
 
 
   // Name tag
@@ -1334,6 +1344,80 @@ function drawSmoke(px, py, direction) {
   }
 }
 
+
+// ── 우산 (초록 존 — 건물 내부) ────────────────────────────────────────────────
+function drawUmbrella(px, py, player) {
+  const cw = CFG.CHAR_W, ch = CFG.CHAR_H;
+  const flip = player.direction === 'left';
+  const sign = flip ? -1 : 1;
+
+  // 우산 중심: 담배 반대 손 위, 캐릭터 머리 위
+  const ux = px - sign * cw * 0.10;
+  const uy = py - ch * 1.05;
+  const r  = 46; // 우산 반지름
+
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+
+  // 손잡이 (우산 중심 → 캐릭터 손 위치)
+  ctx.strokeStyle = '#8AAABB';
+  ctx.lineWidth   = 4;
+  ctx.lineCap     = 'round';
+  ctx.beginPath();
+  ctx.moveTo(ux, uy + 4);
+  ctx.lineTo(ux, uy + ch * 0.55);
+  ctx.stroke();
+
+  // 우산 돔 — 8등분 파이 (파란/베이지 교대)
+  const SEG   = 8;
+  const COLS  = ['#5B6FBF','#E8D5A8','#5B6FBF','#E8D5A8','#5B6FBF','#E8D5A8','#5B6FBF','#E8D5A8'];
+  const sweep = Math.PI / SEG;
+  for (let i = 0; i < SEG; i++) {
+    const sa = Math.PI + i * sweep;
+    const ea = sa + sweep;
+    ctx.fillStyle = COLS[i];
+    ctx.beginPath();
+    ctx.moveTo(ux, uy);
+    ctx.arc(ux, uy, r, sa, ea);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // 외곽 테두리
+  ctx.strokeStyle = 'rgba(30,30,70,0.55)';
+  ctx.lineWidth   = 1.8;
+  ctx.beginPath();
+  ctx.arc(ux, uy, r, Math.PI, 0);
+  ctx.moveTo(ux - r, uy); ctx.lineTo(ux + r, uy); // 하단 직선
+  ctx.stroke();
+
+  // 세그먼트 구분선
+  ctx.strokeStyle = 'rgba(30,30,70,0.30)';
+  ctx.lineWidth   = 1;
+  for (let i = 1; i < SEG; i++) {
+    const a = Math.PI + i * sweep;
+    ctx.beginPath();
+    ctx.moveTo(ux, uy);
+    ctx.lineTo(ux + Math.cos(a) * r, uy + Math.sin(a) * r);
+    ctx.stroke();
+  }
+
+  // 상단 손잡이 knob
+  ctx.fillStyle = '#9B6B3A';
+  ctx.beginPath();
+  ctx.ellipse(ux, uy, 5, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 하이라이트
+  ctx.fillStyle = 'rgba(255,255,255,0.22)';
+  ctx.beginPath();
+  ctx.arc(ux - r * 0.08, uy - r * 0.15, r * 0.62, Math.PI * 1.08, Math.PI * 1.92);
+  ctx.lineTo(ux, uy);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
 
 // ── Chat bubble ───────────────────────────────────────────────────────────────
 function drawChatBubble(x, y, message, ttl) {
