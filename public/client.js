@@ -1080,7 +1080,7 @@ function drawQuokkaSprite(x, y, player) {
 // 원근감: 아랫 반원(뒤) → 캐릭터 → 윗 반원(앞) 순서로 그려야 올바른 레이어
 // ── 캔버스 드로잉 튜브 (빨강/흰색 줄무늬, 참고 이미지 스타일) ─────────────────
 // 빨강·흰 4칸 교대 — 고전 구명 튜브 스타일
-const TUBE_COLORS = ['#E01818','#FFFFFF','#E01818','#FFFFFF','#E01818','#FFFFFF','#E01818','#FFFFFF'];
+const TUBE_COLORS = ['#E01818','#FFFFFF','#E01818','#FFFFFF','#E01818','#FFFFFF','#E01818','#FFFFFF','#E01818','#FFFFFF'];
 const TUBE_SEG    = (Math.PI * 2) / TUBE_COLORS.length;
 
 // 위쪽 반원(뒤, 캐릭터 뒤): π ~ 2π
@@ -1091,7 +1091,7 @@ function drawTubeFront(px, py) { _drawTubeArc(px, py, 0, Math.PI); }
 function _drawTubeArc(px, py, arcStart, arcEnd) {
   const cw = CFG.CHAR_W, ch = CFG.CHAR_H;
   const cx = px;
-  const cy = py - ch * 0.42;
+  const cy = py - ch * 0.42 + 3;
   const rx = cw * 0.30 + 5;
   const ry = 16;
   const lw = 22;
