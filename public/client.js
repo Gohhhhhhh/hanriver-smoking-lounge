@@ -37,6 +37,7 @@ const CFG = {
 
 // ─── Assets ───────────────────────────────────────────────────────────────────
 const assets = {
+  umbrella: null, umbrellaOk: false,
   map:       null, mapOk:       false,
   quokka:    null, quokkaOk:    false,
   walkSheet: null, walkSheetOk: false,
@@ -84,7 +85,7 @@ function getCollisionZone(wx, wy) {
 
 function loadAssets(onProgress, onDone) {
   let done = 0;
-  const total = 5;
+  const total = 6;
   function tick() {
     done++;
     onProgress(done / total);
@@ -110,6 +111,11 @@ function loadAssets(onProgress, onDone) {
   assets.tube.onload  = () => { assets.tubeOk = true;  tick(); };
   assets.tube.onerror = () => { assets.tubeOk = false; tick(); };
   assets.tube.src = 'assets/tube.png';
+
+  assets.umbrella = new Image();
+  assets.umbrella.onload  = () => { assets.umbrellaOk = true;  tick(); };
+  assets.umbrella.onerror = () => { assets.umbrellaOk = false; tick(); };
+  assets.umbrella.src = 'assets/umbrella.png';
 
   loadCollisionMap(() => tick());
 }
@@ -496,7 +502,7 @@ function update() {
 
   // 초록 존(건물): 우산 들고 위로 천천히 떠오름
   if (selfZone === 'green') {
-    self.y = Math.max(40, self.y - 1.5);
+    self.y = Math.max(40, self.y - 3);
     socket.emit('move', { x: self.x, y: self.y, direction: self.direction, isWalking: self.isWalking });
   }
 
@@ -1345,77 +1351,31 @@ function drawSmoke(px, py, direction) {
 }
 
 
-// ── 우산 (초록 존 — 건물 내부) ────────────────────────────────────────────────
+// ── 우산 이미지 (초록 존 — 건물 내부) ──────────────────────────────────────────
 function drawUmbrella(px, py, player) {
+  if (!assets.umbrellaOk) return;
   const cw = CFG.CHAR_W, ch = CFG.CHAR_H;
   const flip = player.direction === 'left';
   const sign = flip ? -1 : 1;
 
-  // 우산 중심: 담배 반대 손 위, 캐릭터 머리 위
-  const ux = px - sign * cw * 0.10;
-  const uy = py - ch * 1.05;
-  const r  = 46; // 우산 반지름
+  // 오른손 위치: 담배(왼손 sign쪽)의 반대편
+  // 손잡이 끝(이미지 하단 중앙)을 오른손에 맞춤
+  const handX = px - sign * cw * 0.22;
+  const handY = py - ch * 0.42;
+
+  // 우산 이미지 크기 (world px 기준)
+  const uw = 100;
+  const uh = 100;
 
   ctx.save();
   ctx.imageSmoothingEnabled = false;
-
-  // 손잡이 (우산 중심 → 캐릭터 손 위치)
-  ctx.strokeStyle = '#8AAABB';
-  ctx.lineWidth   = 4;
-  ctx.lineCap     = 'round';
-  ctx.beginPath();
-  ctx.moveTo(ux, uy + 4);
-  ctx.lineTo(ux, uy + ch * 0.55);
-  ctx.stroke();
-
-  // 우산 돔 — 8등분 파이 (파란/베이지 교대)
-  const SEG   = 8;
-  const COLS  = ['#5B6FBF','#E8D5A8','#5B6FBF','#E8D5A8','#5B6FBF','#E8D5A8','#5B6FBF','#E8D5A8'];
-  const sweep = Math.PI / SEG;
-  for (let i = 0; i < SEG; i++) {
-    const sa = Math.PI + i * sweep;
-    const ea = sa + sweep;
-    ctx.fillStyle = COLS[i];
-    ctx.beginPath();
-    ctx.moveTo(ux, uy);
-    ctx.arc(ux, uy, r, sa, ea);
-    ctx.closePath();
-    ctx.fill();
+  if (flip) {
+    ctx.translate(handX, handY);
+    ctx.scale(-1, 1);
+    ctx.drawImage(assets.umbrella, -uw / 2, -uh, uw, uh);
+  } else {
+    ctx.drawImage(assets.umbrella, handX - uw / 2, handY - uh, uw, uh);
   }
-
-  // 외곽 테두리
-  ctx.strokeStyle = 'rgba(30,30,70,0.55)';
-  ctx.lineWidth   = 1.8;
-  ctx.beginPath();
-  ctx.arc(ux, uy, r, Math.PI, 0);
-  ctx.moveTo(ux - r, uy); ctx.lineTo(ux + r, uy); // 하단 직선
-  ctx.stroke();
-
-  // 세그먼트 구분선
-  ctx.strokeStyle = 'rgba(30,30,70,0.30)';
-  ctx.lineWidth   = 1;
-  for (let i = 1; i < SEG; i++) {
-    const a = Math.PI + i * sweep;
-    ctx.beginPath();
-    ctx.moveTo(ux, uy);
-    ctx.lineTo(ux + Math.cos(a) * r, uy + Math.sin(a) * r);
-    ctx.stroke();
-  }
-
-  // 상단 손잡이 knob
-  ctx.fillStyle = '#9B6B3A';
-  ctx.beginPath();
-  ctx.ellipse(ux, uy, 5, 7, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // 하이라이트
-  ctx.fillStyle = 'rgba(255,255,255,0.22)';
-  ctx.beginPath();
-  ctx.arc(ux - r * 0.08, uy - r * 0.15, r * 0.62, Math.PI * 1.08, Math.PI * 1.92);
-  ctx.lineTo(ux, uy);
-  ctx.closePath();
-  ctx.fill();
-
   ctx.restore();
 }
 
