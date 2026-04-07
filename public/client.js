@@ -1094,7 +1094,7 @@ function _drawTubeArc(px, py, arcStart, arcEnd) {
   const cy = py - ch * 0.42 + 3;
   const rx = cw * 0.30 + 5;
   const ry = 16;
-  const lw = 22;
+  const lw = 25;
   const r  = lw / 2;  // 튜브 단면 반지름
   const t  = animTick;
 
