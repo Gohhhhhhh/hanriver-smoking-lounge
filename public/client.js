@@ -501,8 +501,11 @@ function update() {
   const moveSpeed = selfZone === 'blue' ? CFG.PLAYER_SPEED * 0.5 : CFG.PLAYER_SPEED;
 
   // 초록 존(건물): 우산 들고 위로 천천히 떠오름
+  // 새 위치가 여전히 green인 경우에만 올라감 → green 존 천장 안에서 머뭄
   if (selfZone === 'green') {
-    self.y = Math.max(40, self.y - 3);
+    const floatY   = self.y - 3;
+    const floatZone = getCollisionZone(self.x, floatY);
+    if (floatZone === 'green') self.y = floatY;
     socket.emit('move', { x: self.x, y: self.y, direction: self.direction, isWalking: self.isWalking });
   }
 
@@ -1358,14 +1361,13 @@ function drawUmbrella(px, py, player) {
   const flip = player.direction === 'left';
   const sign = flip ? -1 : 1;
 
-  // 오른손 위치: 담배(왼손 sign쪽)의 반대편
-  // 손잡이 끝(이미지 하단 중앙)을 오른손에 맞춤
-  const handX = px - sign * cw * 0.22;
+  // 오른손 위치: 담배(sign쪽)의 반대편 + x축 오른쪽 보정
+  const handX = px - sign * cw * 0.22 + cw * 0.5;
   const handY = py - ch * 0.42;
 
-  // 우산 이미지 크기 (world px 기준)
-  const uw = 100;
-  const uh = 100;
+  // 우산 이미지 크기 (300% = 3×)
+  const uw = 300;
+  const uh = 300;
 
   ctx.save();
   ctx.imageSmoothingEnabled = false;
