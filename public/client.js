@@ -152,7 +152,8 @@ let   selfId     = null;
 let   players    = {};
 const keys       = {};
 let   chatOpen   = false;
-let   lastMoveAt = 0;
+let   lastMoveAt    = 0;
+let   greenFloatLeft = 0;  // 초록 존에서 남은 float 거리(px)
 let   animTick   = 0;
 
 const cam = {
@@ -500,13 +501,12 @@ function update() {
   const selfZone  = getCollisionZone(self.x, self.y);
   const moveSpeed = selfZone === 'blue' ? CFG.PLAYER_SPEED * 0.5 : CFG.PLAYER_SPEED;
 
-  // 초록 존(건물): 우산 들고 위로 천천히 떠오름
-  // 새 위치가 여전히 green인 경우에만 올라감 → green 존 천장 안에서 머뭄
-  if (selfZone === 'green') {
-    const floatY   = self.y - 3;
-    const floatZone = getCollisionZone(self.x, floatY);
-    if (floatZone === 'green') self.y = floatY;
-    socket.emit('move', { x: self.x, y: self.y, direction: self.direction, isWalking: self.isWalking });
+  // 초록 존(건물): 키를 놓는 순간 40px 위로 튀어오름 (3px/frame)
+  if (selfZone === 'green' && !moving && greenFloatLeft > 0) {
+    const step = Math.min(3, greenFloatLeft);
+    self.y = Math.max(40, self.y - step);
+    greenFloatLeft -= step;
+    socket.emit('move', { x: self.x, y: self.y, direction: self.direction, isWalking: false });
   }
 
   if (moving) {
@@ -523,6 +523,8 @@ function update() {
   } else {
     if (self.isWalking) {
       socket.emit('move', { x: self.x, y: self.y, direction: self.direction, isWalking: false });
+      // 초록 존에서 키를 놓는 순간 → 40px float 충전
+      if (selfZone === 'green') greenFloatLeft = 40;
     }
     self.walkFrame = 0;
     self.isWalking = false;
@@ -967,7 +969,6 @@ function drawPlayer(player, isSelf) {
   const zone       = getCollisionZone(player.x, player.y);
   const zoneAlpha  = zone === 'yellow' ? 0.3 : 1.0;
   const inWater    = zone === 'blue';
-  const inBuilding = zone === 'green';
 
   // 물에서 둥둥 떠다니는 bob 오프셋 (플레이어마다 위상 다르게)
   const bobPhase  = (player.x * 0.03 + player.y * 0.02) % (Math.PI * 2);
@@ -1025,8 +1026,6 @@ function drawPlayer(player, isSelf) {
   // 튜브 앞 반원 (캐릭터 위에 그림)
   if (inWater) drawTubeFront(px, rpy);
 
-  // 우산 (건물 내부 — 캐릭터 위에 그림)
-  if (inBuilding) drawUmbrella(px, rpy, player);
 
 
   // Name tag
