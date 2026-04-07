@@ -130,9 +130,9 @@ window.addEventListener('resize', resizeCanvas);
 
 // ─── Player color palette ─────────────────────────────────────────────────────
 const PLAYER_COLORS = [
-  '#FF6B9D','#FF9F43','#FECA57','#48DBFB',
-  '#7BED9F','#70A1FF','#FF6348','#0ABDE3',
-  '#C44569','#F8B739','#10AC84','#A29BFE',
+  '#FFB3C6','#FFD6A5','#FDFFB6','#CAFFBF',
+  '#9BF6FF','#A0C4FF','#BDB2FF','#FFC6FF',
+  '#B5EAD7','#C7CEEA','#FFE5B4','#F0C4E4',
 ];
 function getPlayerColor(id) {
   let h = 0;
@@ -343,7 +343,7 @@ socket.on('playerLeft', (id) => {
 socket.on('chatMessage', ({ id, name, message }) => {
   const p = players[id];
   if (p) { p.chatMsg = message; p.chatTtl = 270; }
-  appendChatLog(name, message);
+  appendChatLog(id, name, message);
 });
 
 socket.on('playerSmokingUpdate', ({ id, isSmoking }) => {
@@ -406,11 +406,12 @@ function closeChat() {
 }
 
 // ─── Chat log ─────────────────────────────────────────────────────────────────
-function appendChatLog(name, message) {
-  const log  = document.getElementById('chatLog');
-  const line = document.createElement('div');
+function appendChatLog(id, name, message) {
+  const log   = document.getElementById('chatLog');
+  const line  = document.createElement('div');
+  const color = getPlayerColor(id);
   line.className = 'chat-line';
-  line.innerHTML = `<span class="chat-name">${esc(name)}</span>${esc(message)}`;
+  line.innerHTML = `<span class="chat-name" style="background:${color};color:#111;">${esc(name)}</span>${esc(message)}`;
   log.appendChild(line);
   log.scrollTop = log.scrollHeight;
   while (log.children.length > 60) log.removeChild(log.firstChild);
@@ -1021,7 +1022,7 @@ function drawPlayer(player, isSelf) {
   ctx.beginPath();
   ctx.roundRect(px - nameW / 2, nameY - 13, nameW, 17, 8);
   ctx.fill();
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = '#111';
   ctx.fillText(player.name, px, nameY);
   ctx.restore();
 
