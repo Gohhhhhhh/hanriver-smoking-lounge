@@ -128,6 +128,18 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
+// ─── Player color palette ─────────────────────────────────────────────────────
+const PLAYER_COLORS = [
+  '#FF6B9D','#FF9F43','#FECA57','#48DBFB',
+  '#7BED9F','#70A1FF','#FF6348','#0ABDE3',
+  '#C44569','#F8B739','#10AC84','#A29BFE',
+];
+function getPlayerColor(id) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) & 0xffff;
+  return PLAYER_COLORS[h % PLAYER_COLORS.length];
+}
+
 // ─── State ────────────────────────────────────────────────────────────────────
 const socket     = io();
 let   selfId     = null;
@@ -1004,11 +1016,12 @@ function drawPlayer(player, isSelf) {
   ctx.textAlign = 'center';
   const nameY = rpy - ch - 8;
   const nameW = ctx.measureText(player.name).width + 14;
-  ctx.fillStyle = isSelf ? 'rgba(255,215,0,0.9)' : 'rgba(20,10,30,0.72)';
+  const chipColor = getPlayerColor(player.id);
+  ctx.fillStyle = chipColor;
   ctx.beginPath();
   ctx.roundRect(px - nameW / 2, nameY - 13, nameW, 17, 8);
   ctx.fill();
-  ctx.fillStyle = isSelf ? '#111' : '#fff';
+  ctx.fillStyle = '#fff';
   ctx.fillText(player.name, px, nameY);
   ctx.restore();
 
@@ -1402,24 +1415,17 @@ function renderMiniMap() {
   miniCtx.lineWidth   = 1;
   miniCtx.strokeRect(vx, vy, vw, vh);
 
-  // Other players
+  // All players (including self) — use per-player color
   Object.values(players).forEach(p => {
-    if (p.id === selfId) return;
     const mx = (p.x / MAP_W) * mw, my = (p.y / MAP_H) * mh;
-    miniCtx.fillStyle = '#FF8FBF';
-    miniCtx.beginPath(); miniCtx.arc(mx, my, 2.5, 0, Math.PI * 2); miniCtx.fill();
-  });
-
-  // Self
-  if (selfId && players[selfId]) {
-    const mx = (players[selfId].x / MAP_W) * mw;
-    const my = (players[selfId].y / MAP_H) * mh;
-    miniCtx.fillStyle   = '#FFD700';
+    const isSelfDot = p.id === selfId;
+    miniCtx.fillStyle   = getPlayerColor(p.id);
     miniCtx.strokeStyle = '#fff';
     miniCtx.lineWidth   = 1;
-    miniCtx.beginPath(); miniCtx.arc(mx, my, 3.5, 0, Math.PI * 2);
-    miniCtx.fill(); miniCtx.stroke();
-  }
+    miniCtx.beginPath(); miniCtx.arc(mx, my, isSelfDot ? 3.5 : 2.5, 0, Math.PI * 2);
+    miniCtx.fill();
+    if (isSelfDot) miniCtx.stroke();
+  });
 
   // Border
   miniCtx.strokeStyle = 'rgba(255,182,210,0.4)';
