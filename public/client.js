@@ -524,7 +524,7 @@ function update() {
     if (self.isWalking) {
       socket.emit('move', { x: self.x, y: self.y, direction: self.direction, isWalking: false });
       // 초록 존에서 키를 놓는 순간 → 40px float 충전
-      if (selfZone === 'green') greenFloatLeft = 40;
+      if (selfZone === 'green') greenFloatLeft = 120;
     }
     self.walkFrame = 0;
     self.isWalking = false;
