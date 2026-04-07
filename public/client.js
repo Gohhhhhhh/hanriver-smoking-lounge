@@ -1095,6 +1095,7 @@ function _drawTubeArc(px, py, arcStart, arcEnd) {
   const rx = cw * 0.30 + 5;
   const ry = 16;
   const lw = 22;
+  const r  = lw / 2;  // 튜브 단면 반지름
   const t  = animTick;
 
   ctx.save();
@@ -1119,52 +1120,37 @@ function _drawTubeArc(px, py, arcStart, arcEnd) {
     ctx.stroke();
   }
 
-  // ③ 밝은 면 음영 — 위쪽이 밝고 아래쪽이 약간 어둡게 (입체감)
-  const shadS = Math.max(Math.PI * 0.25, arcStart);
-  const shadE = Math.min(Math.PI * 0.75, arcEnd);
-  if (shadE > shadS) {
-    ctx.lineWidth   = lw * 0.7;
-    ctx.strokeStyle = 'rgba(80,0,0,0.18)';
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + ry * 0.15, rx * 0.90, ry * 0.65, 0, shadS, shadE);
-    ctx.stroke();
-  }
+  // ③ 하단 그림자 — 단면 아래쪽을 어둡게 (입체감 핵심)
+  //    cy + r*0.55 : 단면 중심에서 아래로 치우쳐 하단 절반을 덮음
+  ctx.lineWidth   = lw * 0.62;
+  ctx.strokeStyle = 'rgba(0,0,0,0.38)';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + r * 0.55, rx, ry, 0, arcStart, arcEnd);
+  ctx.stroke();
 
-  // ④ 광택 — 넓은 소프트 레이어
-  const g1S = arcStart, g1E = Math.min(Math.PI * 0.80, arcEnd);
-  if (g1E > g1S + 0.05) {
-    ctx.lineWidth   = lw * 0.60;
-    ctx.strokeStyle = 'rgba(255,255,255,0.32)';
-    ctx.beginPath();
-    ctx.ellipse(cx, cy - ry * 0.22, rx * 0.94, ry * 0.68, 0, g1S + 0.10, g1E - 0.08);
-    ctx.stroke();
-  }
+  // ④ 소프트 하이라이트 — 단면 위쪽에 넓은 흰 빛
+  ctx.lineWidth   = lw * 0.50;
+  ctx.strokeStyle = 'rgba(255,255,255,0.36)';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - r * 0.40, rx, ry, 0, arcStart, arcEnd);
+  ctx.stroke();
 
-  // ⑤ 광택 — 좁고 선명한 specular
-  const g2S = Math.max(Math.PI * 1.18, arcStart);
-  const g2E = Math.min(Math.PI * 1.82, arcEnd);
-  if (g2E > g2S + 0.05) {
-    ctx.lineWidth   = lw * 0.42;
-    ctx.strokeStyle = 'rgba(255,255,255,0.38)';
-    ctx.beginPath();
-    ctx.ellipse(cx, cy - ry * 0.25, rx * 0.65, ry * 0.48, 0, g2S, g2E);
-    ctx.stroke();
-    ctx.lineWidth   = 3;
-    ctx.strokeStyle = 'rgba(255,255,255,0.82)';
-    ctx.beginPath();
-    ctx.ellipse(cx, cy - ry * 0.36, rx * 0.40, ry * 0.30, 0, g2S + 0.25, g2E - 0.25);
-    ctx.stroke();
-  }
+  // ⑤ 선명한 specular — 단면 가장 위쪽 좁은 하이라이트
+  ctx.lineWidth   = lw * 0.18;
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - r * 0.62, rx * 0.88, ry * 0.82, 0, arcStart, arcEnd);
+  ctx.stroke();
 
   // ⑥ 물 반사 림라이트 — 앞 하단에 파란빛
   const rimS = Math.max(Math.PI * 0.38, arcStart);
   const rimE = Math.min(Math.PI * 0.62, arcEnd);
   if (rimE > rimS) {
-    const shimmer = 0.20 + Math.sin(t * 0.11) * 0.08;
+    const shimmer = 0.22 + Math.sin(t * 0.11) * 0.08;
     ctx.lineWidth   = 5;
     ctx.strokeStyle = `rgba(120,210,255,${shimmer})`;
     ctx.beginPath();
-    ctx.ellipse(cx, cy + ry * 0.38, rx * 0.65, ry * 0.45, 0, rimS, rimE);
+    ctx.ellipse(cx, cy + r * 0.70, rx * 0.65, ry * 0.50, 0, rimS, rimE);
     ctx.stroke();
   }
 
